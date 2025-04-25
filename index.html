@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jarvish AI</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 30px; background: #111; color: white; }
+    textarea, input { width: 80%; padding: 10px; margin: 10px 0; border-radius: 8px; border: none; }
+    button { padding: 10px 20px; margin: 5px; border-radius: 8px; background: #0f0; color: #000; border: none; font-weight: bold; }
+    #response { margin-top: 20px; padding: 15px; background: #222; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome to Jarvish</h1>
+  <textarea id="userInput" placeholder="Ask me anything..."></textarea><br>
+  <button onclick="askJarvish()">Send</button>
+  <button onclick="speakText()">🔊 Speak</button>
+  <button onclick="startListening()">🎤 Speak to Jarvish</button>
+
+  <div id="response">AI response will appear here.</div>
+
+  <script>
+    // এখানে তোমার API Key বসাও
+    const apiKey = "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"; // তোমার API Key বসিয়ে দাও
+
+    async function askJarvish() {
+      const input = document.getElementById('userInput').value;
+      const resDiv = document.getElementById('response');
+
+      resDiv.innerText = "Thinking...";
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: input }],
+          temperature: 0.7
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.choices[0].message.content;
+      resDiv.innerText = reply;
+    }
+
+    function speakText() {
+      const msg = new SpeechSynthesisUtterance();
+      msg.text = document.getElementById("response").innerText;
+      msg.lang = "en-US";
+      speechSynthesis.speak(msg);
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+
+      recognition.onstart = function() {
+        console.log('Listening...');
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('userInput').value = transcript;
+        askJarvish();
+      };
+
+      recognition.onerror = function(event) {
+        console.log('Error occurred: ' + event.error);
+      };
+
+      recognition.start();
+    }
+  </script>
+
+</body>
+</html>
