@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Jarvish AI</title>
+  <style>
+    body { font-family: sans-serif; background: #111; color: white; text-align: center; padding: 30px; }
+    textarea { width: 80%; padding: 10px; border-radius: 10px; border: none; }
+    button { padding: 10px 20px; margin: 5px; border-radius: 10px; background: #0f0; color: #000; font-weight: bold; }
+    #response { margin-top: 20px; background: #222; padding: 15px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Hello Boss, I'm Jarvish</h1>
+  <textarea id="userInput" placeholder="Ask me anything..."></textarea><br>
+  <button onclick="askJarvish()">Send</button>
+  <button onclick="speakText()">🔊 Speak</button>
+  <button onclick="startListening()">🎤 Voice Input</button>
+
+  <div id="response">I'll reply here...</div>
+
+  <script>
+const apiKey = "4cf1545b41msh0cb53975547677ap1b485cjsn9fab3f70a2a6";
+
+    async function askJarvish() {
+      const input = document.getElementById("userInput").value;
+      const resDiv = document.getElementById("response");
+      resDiv.innerText = "Thinking...";
+
+      const options = {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Host': 'chatgpt53.p.rapidapi.com'
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: input }]
+        })
+      };
+
+      try {
+        const response = await fetch('https://chatgpt53.p.rapidapi.com/', options);
+        const data = await response.json();
+        resDiv.innerText = data.choices[0].message.content;
+      } catch (error) {
+        resDiv.innerText = "Something went wrong!";
+        console.error(error);
+      }
+    }
+
+    function speakText() {
+      const msg = new SpeechSynthesisUtterance();
+      msg.text = document.getElementById("response").innerText;
+      msg.lang = "en-US";
+      speechSynthesis.speak(msg);
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = "en-US";
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("userInput").value = transcript;
+        askJarvish();
+      };
+      recognition.start();
+    }
+  </script>
+
+</body>
+</html>
